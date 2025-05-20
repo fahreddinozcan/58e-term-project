@@ -109,4 +109,35 @@ jobs:
                 docker push europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/myapp-repo/myapp:${{ github.sha }}
               
 
-            
+    
+    deploy-to-k8s:
+      needs: build-image
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+
+        - name: Configure Google Cloud
+          uses: google-github-actions/auth@v1
+          with:
+            credentials_json: ${{ secrets.GCP_SA_KEY }}
+        
+        - name: Set up Google Cloud SDK
+          uses: google-github-actions/setup-gcloud@v2
+
+        - name: Get GKE Credentials
+          uses: google-github-actions/get-gke-credentials@v2
+          with:
+            cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}
+            location: ${{ secrets.GKE_ZONE }}
+            project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+        - name: Set up Kustomize
+          run: |
+            curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+            sudo mv kustomize /usr/local/bin/
+
+        - name: Deploy to Kubernetes
+          run: |
+            kubectl apply -k k8s/
+            kubectl rollout status deployment/myapp-deployment -n default
+       
