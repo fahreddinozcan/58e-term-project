@@ -76,8 +76,8 @@ jobs:
                 push: false
                 tags: myapp:${{ github.sha }}
                 load: true
-                cache-from: type=gha
-                cache-to: type=gha,mode=max
+                # cache-from: type=gha
+                # cache-to: type=gha,mode=max
             - name: Run container scan with Trivy
               uses: aquasecurity/trivy-action@master
               with:
