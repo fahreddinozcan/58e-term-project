@@ -27,7 +27,7 @@ jobs:
             # - name: Run code formatting check with yapf
             #   run: yapf --diff --recursive app/
             - name: Run unit tests with coverage
-              run: pytest tests/
+              run: pytest /app/tests/
 
 
     # Needs more research on how to implement the best
