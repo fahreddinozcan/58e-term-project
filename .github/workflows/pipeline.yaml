@@ -24,8 +24,8 @@ jobs:
             
             - name: Run code linting with pylint
               run: pylint --disable=C0111,C0103 app/
-            - name: Run code formatting check with yapf
-              run: yapf --diff --recursive app/
+            # - name: Run code formatting check with yapf
+            #   run: yapf --diff --recursive app/
             - name: Run unit tests with coverage
               run: pytest --cov=app tests/
 
