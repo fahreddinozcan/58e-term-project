@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, master]
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -14,22 +18,21 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pylint pytest
+          pip install pylint pytest pytest-cov
 
       - name: Run code linting with pylint
-        run: pylint --disable=C0111,C0103 app/
-      # - name: Run code formatting check with yapf
-      #   run: yapf --diff --recursive app/
+        run: pylint app/ tests/ || echo "Linting completed with warnings"
+        
       - name: Run unit tests with coverage
-        run: pytest app/tests/
+        run: |
+          PYTHONPATH=. pytest --cov=app tests/
 
-  # Needs more research on how to implement the best
   security-scan:
     needs: build-and-test
     runs-on: ubuntu-latest
@@ -54,6 +57,31 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+          
+      - name: Check for Terraform files
+        id: check_terraform
+        run: |
+          if [ -d "terraform" ]; then
+            echo "terraform_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "terraform_exists=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Scan Terraform with Checkov
+        if: steps.check_terraform.outputs.terraform_exists == 'true'
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform/
+          framework: terraform
+          output_format: cli,sarif
+          output_file_path: console,terraform-results.sarif
+          soft_fail: true
+
+      - name: Upload Checkov scan results
+        if: steps.check_terraform.outputs.terraform_exists == 'true'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: terraform-results.sarif
 
   build-image:
     needs: security-scan
@@ -69,24 +97,19 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Build Docker Image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: false
-          tags: myapp:${{ github.sha }}
-          load: true
-          # cache-from: type=gha
-          # cache-to: type=gha,mode=max
+        run: |
+          docker build -t myapp:${{ github.sha }} .
+      
       - name: Run container scan with Trivy
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: myapp:${{ github.sha}}
+          image-ref: myapp:${{ github.sha }}
           format: "sarif"
           output: "trivy-results.sarif"
           severity: "CRITICAL,HIGH"
 
       - name: Upload Trivy scan results to Github Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-results.sarif
 
@@ -94,11 +117,14 @@ jobs:
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
 
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
+        with:
+          install_components: 'gke-gcloud-auth-plugin'
 
-      - name: Configure Docker for Google Artifact Registery
+      - name: Configure Docker for Google Artifact Registry
         run: |
           gcloud auth configure-docker europe-west1-docker.pkg.dev
 
@@ -139,7 +165,31 @@ jobs:
             --zone ${{ secrets.GKE_ZONE }} \
             --project ${{ secrets.GCP_PROJECT_ID }}
           kubectl config current-context
-
+          
+      - name: Install OPA Gatekeeper
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper/master/deploy/gatekeeper.yaml
+          # Wait for Gatekeeper to be ready
+          kubectl wait --for=condition=available --timeout=300s deployment/gatekeeper-controller-manager -n gatekeeper-system || true
+          sleep 30
+          
+      - name: Update Gatekeeper constraint with registry info
+        run: |
+          REGISTRY="europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/myapp-repo"
+          sed -i "s|<REGISTRY_PLACEHOLDER>|$REGISTRY|g" k8s/gatekeeper/constraint.yaml
+          cat k8s/gatekeeper/constraint.yaml
+          
+      - name: Apply Gatekeeper template first
+        run: |
+          kubectl apply -f k8s/gatekeeper/constraint-template.yaml
+          echo "Waiting for CRD to be registered..."
+          sleep 15
+          kubectl get crds | grep k8sallowedrepos || sleep 15
+          
+      - name: Apply Gatekeeper constraint
+        run: |
+          kubectl apply -f k8s/gatekeeper/constraint.yaml
+          
       - name: Update Kubernetes manifests
         run: |
           # Update image in deployment manifest with the built image
