@@ -1,0 +1,14 @@
+# apiVersion: constraints.gatekeeper.sh/v1beta1
+# kind: AllowedRepos
+# metadata:
+#   name: only-allow-project-registry
+# spec:
+#   match:
+#     kinds:
+#       - apiGroups: [""]
+#         kinds: ["Pod"]
+#       - apiGroups: ["apps"]
+#         kinds: ["Deployment", "StatefulSet", "DaemonSet"]
+#   parameters:
+#     repos:
+#       - "cmpe-58e-term-project/myapp-repo"
