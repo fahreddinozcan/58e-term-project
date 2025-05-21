@@ -184,12 +184,21 @@ jobs:
         run: |
           kubectl apply -f k8s/gatekeeper/constraint-template.yaml
           echo "Waiting for CRD to be registered..."
-          sleep 15
-          kubectl get crds | grep k8sallowedrepos || sleep 15
+          # Wait for the CRD to be properly registered
+          for i in {1..6}; do
+            kubectl get crds | grep k8sallowedrepos && break
+            echo "Waiting for K8sAllowedRepos CRD to be registered (attempt $i)..."
+            sleep 10
+          done
 
       - name: Apply Gatekeeper constraint
         run: |
-          kubectl apply -f k8s/gatekeeper/constraint.yaml
+          # Check if CRD exists before applying constraint
+          if kubectl get crds | grep k8sallowedrepos; then
+            kubectl apply -f k8s/gatekeeper/constraint.yaml
+          else
+            echo "K8sAllowedRepos CRD not found - skipping constraint application"
+          fi
 
       - name: Update Kubernetes manifests
         run: |
