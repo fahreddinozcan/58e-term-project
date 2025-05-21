@@ -114,7 +114,7 @@ jobs:
           sarif_file: trivy-results.sarif
 
       - name: Configure Google Cloud
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
@@ -140,7 +140,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Configure Google Cloud
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
