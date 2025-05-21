@@ -28,10 +28,10 @@ jobs:
 
       - name: Run code linting with pylint
         run: pylint app/ tests/ || echo "Linting completed with warnings"
-        
+
       - name: Run unit tests with coverage
         run: |
-          PYTHONPATH=. pytest --cov=app tests/
+          pytest app/tests/
 
   security-scan:
     needs: build-and-test
@@ -57,7 +57,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
-          
+
       - name: Check for Terraform files
         id: check_terraform
         run: |
@@ -66,7 +66,7 @@ jobs:
           else
             echo "terraform_exists=false" >> $GITHUB_OUTPUT
           fi
-          
+
       - name: Scan Terraform with Checkov
         if: steps.check_terraform.outputs.terraform_exists == 'true'
         uses: bridgecrewio/checkov-action@v12
@@ -99,7 +99,7 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build -t myapp:${{ github.sha }} .
-      
+
       - name: Run container scan with Trivy
         uses: aquasecurity/trivy-action@master
         with:
@@ -122,7 +122,7 @@ jobs:
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
-          install_components: 'gke-gcloud-auth-plugin'
+          install_components: "gke-gcloud-auth-plugin"
 
       - name: Configure Docker for Google Artifact Registry
         run: |
@@ -148,7 +148,7 @@ jobs:
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
-          install_components: 'gke-gcloud-auth-plugin'
+          install_components: "gke-gcloud-auth-plugin"
 
       - name: Debug GCP Configuration
         run: |
@@ -165,31 +165,31 @@ jobs:
             --zone ${{ secrets.GKE_ZONE }} \
             --project ${{ secrets.GCP_PROJECT_ID }}
           kubectl config current-context
-          
+
       - name: Install OPA Gatekeeper
         run: |
           kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper/master/deploy/gatekeeper.yaml
           # Wait for Gatekeeper to be ready
           kubectl wait --for=condition=available --timeout=300s deployment/gatekeeper-controller-manager -n gatekeeper-system || true
           sleep 30
-          
+
       - name: Update Gatekeeper constraint with registry info
         run: |
           REGISTRY="europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/myapp-repo"
           sed -i "s|<REGISTRY_PLACEHOLDER>|$REGISTRY|g" k8s/gatekeeper/constraint.yaml
           cat k8s/gatekeeper/constraint.yaml
-          
+
       - name: Apply Gatekeeper template first
         run: |
           kubectl apply -f k8s/gatekeeper/constraint-template.yaml
           echo "Waiting for CRD to be registered..."
           sleep 15
           kubectl get crds | grep k8sallowedrepos || sleep 15
-          
+
       - name: Apply Gatekeeper constraint
         run: |
           kubectl apply -f k8s/gatekeeper/constraint.yaml
-          
+
       - name: Update Kubernetes manifests
         run: |
           # Update image in deployment manifest with the built image
