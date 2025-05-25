@@ -8,7 +8,9 @@ spec:
       - apiGroups: [""]
         kinds: ["Pod"]
       - apiGroups: ["apps"]
-        kinds: ["Deployment", "StatefulSet", "DaemonSet"]
+        kinds: ["Deployment"]
+    namespaces:
+      - "default"
   parameters:
     repos:
-      - "<REGISTRY_PLACEHOLDER>"
+      - "<REGISTRY_PLACEHOLDER>/"
