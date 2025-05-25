@@ -1,16 +1,11 @@
 FROM python:alpine
 
-
-RUN groupadd -r appuser && useradd -r -g appuser appuser
-
 WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ app/
-
-USER appuser
 
 EXPOSE 8080
 
