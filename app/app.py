@@ -59,6 +59,7 @@ def create_task():
 
     Expects a JSON payload with at least a 'title' field.
 
+
     Returns:
         JSON response with the created task data and 201 status code on success,
         or error message with 400 status code if validation fails
@@ -176,7 +177,6 @@ def search_tasks():
     """
     keyword = request.args.get("q", "")
     # SECURITY VULNERABILITY: Direct use of user input in SQL query
-    # This will trigger CodeQL security scanning
     conn = sqlite3.connect(":memory:")
     cursor = conn.cursor()
     cursor.execute(
@@ -190,7 +190,7 @@ def search_tasks():
         )
     # VULNERABLE QUERY - Using string formatting instead of parameterized query
     query = f"SELECT * FROM tasks WHERE title LIKE '%{keyword}%' OR description LIKE '%{keyword}%'"
-    cursor.execute(query)  # CodeQL will flag this as SQL injection
+    cursor.execute(query)
     results = cursor.fetchall()
     conn.close()
     return jsonify({"results": results})
@@ -203,11 +203,7 @@ def execute_command():
     command = data.get("command", "")
 
     # VULNERABLE: Direct execution of user input
-    result = os.system(command)  # CodeQL: Command injection
-
-    # Alternative vulnerable patterns:
-    # subprocess.call(command, shell=True)  # Also vulnerable
-    # os.popen(command).read()  # Also vulnerable
+    result = os.system(command)
 
     return jsonify({"result": result})
 
