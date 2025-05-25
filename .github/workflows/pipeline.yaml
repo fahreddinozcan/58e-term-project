@@ -207,11 +207,24 @@ jobs:
             
             # Get the latest ReplicaSet
             LATEST_RS=$(kubectl get rs -l app=myapp --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}')
+            echo "Latest ReplicaSet: $LATEST_RS"
+            
+            # Get detailed information about the ReplicaSet
+            echo "\n==== ReplicaSet Details ===="
+            kubectl describe rs $LATEST_RS
             
             # Get the error message from the ReplicaSet events
-            ERROR_MSG=$(kubectl get events --field-selector involvedObject.name=$LATEST_RS -o jsonpath='{.items[?(@.reason=="FailedCreate")].message}')
+            echo "\n==== ReplicaSet Events ===="
+            kubectl get events --field-selector involvedObject.name=$LATEST_RS
             
-            echo "Error: $ERROR_MSG"
+            # Extract the specific error message
+            ERROR_MSG=$(kubectl get events --field-selector involvedObject.name=$LATEST_RS,reason=FailedCreate -o jsonpath='{.items[0].message}')
+            
+            echo "\n==== OPA Gatekeeper Validation Error ===="
+            echo "$ERROR_MSG"
+            
+            # Format the error for GitHub Actions
+            echo "::error::OPA Gatekeeper blocked deployment: $ERROR_MSG"
             exit 1
           else
             echo "Deployment passed OPA Gatekeeper validation!"
