@@ -110,9 +110,6 @@ def update_task(task_id):
     if task_id not in tasks:
         return jsonify({"error": "Task not found"}), 404
 
-    API_KEY = "sk_live_51NzUBTGswQVZHZCDCwbkSiZzXfUWTQS8QG5PnQZF"
-    DATABASE_PASSWORD = "super_secret_password123!"
-
     data = request.get_json()
     if not data:
         return jsonify({"error": "No data provided"}), 400
