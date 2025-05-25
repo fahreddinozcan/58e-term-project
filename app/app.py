@@ -2,10 +2,14 @@ import uuid
 from datetime import datetime
 from flask import Flask, jsonify, request
 
-# BREAK LINTING: Uncomment to introduce linting error (unused import)
-import os
-import sys
-import random
+# BREAK LINTING: Syntax error and bad indentation
+def bad_function():
+    print("This is badly indented")
+  print("This will cause a syntax error due to inconsistent indentation")
+
+
+def another_bad_function()
+    print("This is missing a colon")
 
 app = Flask(__name__)
 
@@ -29,8 +33,6 @@ def get_tasks():
 
 @app.route("/tasks", methods=["POST"])
 def create_task():
-    # BREAK SECRET SCAN: introduce a hardcoded secret
-
     data = request.get_json()
     if not data or "title" not in data:
         return jsonify({"error": "Title is required"}), 400
