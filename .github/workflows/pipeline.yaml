@@ -192,3 +192,27 @@ jobs:
         run: |
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
+          
+      - name: Verify deployment passes OPA Gatekeeper validation
+        run: |
+          echo "Waiting for deployment to be ready..."
+          sleep 10
+          
+          # Check if the deployment has the ReplicaFailure condition
+          REPLICA_FAILURE=$(kubectl get deployment myapp-deployment -o jsonpath='{.status.conditions[?(@.type=="ReplicaFailure")].status}')
+          
+          if [ "$REPLICA_FAILURE" == "True" ]; then
+            echo "::error::Deployment failed OPA Gatekeeper validation!"
+            echo "Checking ReplicaSet for detailed error..."
+            
+            # Get the latest ReplicaSet
+            LATEST_RS=$(kubectl get rs -l app=myapp --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}')
+            
+            # Get the error message from the ReplicaSet events
+            ERROR_MSG=$(kubectl get events --field-selector involvedObject.name=$LATEST_RS -o jsonpath='{.items[?(@.reason=="FailedCreate")].message}')
+            
+            echo "Error: $ERROR_MSG"
+            exit 1
+          else
+            echo "Deployment passed OPA Gatekeeper validation!"
+          fi
