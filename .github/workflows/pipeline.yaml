@@ -27,7 +27,7 @@ jobs:
           pip install pylint pytest pytest-cov
 
       - name: Run code linting with pylint
-        run: pylint app/ tests/ || echo "Linting completed with warnings"
+        run: pylint app/ tests/
 
       - name: Run unit tests with coverage
         run: |
