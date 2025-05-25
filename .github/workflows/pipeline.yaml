@@ -150,14 +150,9 @@ jobs:
         with:
           install_components: "gke-gcloud-auth-plugin"
 
-      - name: Debug GCP Configuration
+      - name: Install GKE auth plugin
         run: |
-          echo "Checking gcloud configuration..."
-          gcloud config list
-          echo "Checking GCP project..."
-          gcloud projects describe ${{ secrets.GCP_PROJECT_ID }} || echo "Failed to access project"
-          echo "Checking available GKE clusters..."
-          gcloud container clusters list --project ${{ secrets.GCP_PROJECT_ID }} || echo "Failed to list clusters"
+          gcloud components install gke-gcloud-auth-plugin
 
       - name: Get GKE Credentials
         run: |
@@ -168,11 +163,9 @@ jobs:
 
       - name: Install OPA Gatekeeper
         run: |
-          kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper/master/deploy/gatekeeper.yaml || echo "Gatekeeper installation failed - may need cluster admin permissions"
-          # Check if gatekeeper namespace exists
-          kubectl get namespace gatekeeper-system || echo "Gatekeeper namespace not found, will proceed with deployment anyway"
-          # Only wait if the namespace exists
-          kubectl get namespace gatekeeper-system && kubectl wait --for=condition=available --timeout=300s deployment/gatekeeper-controller-manager -n gatekeeper-system || echo "Skipping wait for Gatekeeper"
+          kubectl apply -f https://raw.githubusercontent.com/open-policy-agent/gatekeeper/master/deploy/gatekeeper.yaml
+          # Wait for Gatekeeper to be ready
+          kubectl wait --for=condition=available --timeout=300s deployment/gatekeeper-controller-manager -n gatekeeper-system
 
       - name: Update Gatekeeper constraint with registry info
         run: |
@@ -184,25 +177,17 @@ jobs:
         run: |
           kubectl apply -f k8s/gatekeeper/constraint-template.yaml
           echo "Waiting for CRD to be registered..."
-          # Wait for the CRD to be properly registered
-          for i in {1..6}; do
-            kubectl get crds | grep k8sallowedrepos && break
-            echo "Waiting for K8sAllowedRepos CRD to be registered (attempt $i)..."
-            sleep 10
-          done
+          sleep 10
+          kubectl get crds | grep k8sallowedrepos || sleep 10
+          kubectl get crds | grep k8sallowedrepos || sleep 10
+          kubectl get crds | grep k8sallowedrepos
 
       - name: Apply Gatekeeper constraint
         run: |
-          # Check if CRD exists before applying constraint
-          if kubectl get crds | grep k8sallowedrepos; then
-            kubectl apply -f k8s/gatekeeper/constraint.yaml
-          else
-            echo "K8sAllowedRepos CRD not found - skipping constraint application"
-          fi
+          kubectl apply -f k8s/gatekeeper/constraint.yaml
 
-      - name: Update Kubernetes manifests
+      - name: Replace image reference in deployment.yaml
         run: |
-          # Update image in deployment manifest with the built image
           sed -i "s|image: myapp:latest|image: europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/myapp-repo/myapp:${{ github.sha }}|g" k8s/deployment.yaml
           cat k8s/deployment.yaml
 
