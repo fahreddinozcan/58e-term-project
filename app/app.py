@@ -166,35 +166,32 @@ def get_stats():
 @app.route("/search", methods=["GET"])
 def search_tasks():
     """Search for tasks by keyword - VULNERABLE TO SQL INJECTION.
-    
+
     This function contains a deliberate SQL injection vulnerability
     that should be detected by CodeQL.
-    
+
     Returns:
         JSON response with matching tasks
     """
     keyword = request.args.get("q", "")
-    
     # SECURITY VULNERABILITY: Direct use of user input in SQL query
     # This will trigger CodeQL security scanning
     conn = sqlite3.connect(":memory:")
     cursor = conn.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS tasks (id TEXT, title TEXT, description TEXT)")
-    
+    cursor.execute(
+        "CREATE TABLE IF NOT EXISTS tasks (id TEXT, title TEXT, description TEXT)"
+    )
     # Populate in-memory DB with our tasks
     for task_id, task in tasks.items():
         cursor.execute(
-            "INSERT INTO tasks VALUES (?, ?, ?)", 
-            (task_id, task["title"], task["description"])
+            "INSERT INTO tasks VALUES (?, ?, ?)",
+            (task_id, task["title"], task["description"]),
         )
-    
     # VULNERABLE QUERY - Using string formatting instead of parameterized query
     query = f"SELECT * FROM tasks WHERE title LIKE '%{keyword}%' OR description LIKE '%{keyword}%'"
     cursor.execute(query)  # CodeQL will flag this as SQL injection
-    
     results = cursor.fetchall()
     conn.close()
-    
     return jsonify({"results": results})
 
 
