@@ -10,13 +10,14 @@ from app.app import app, tasks
 
 class TestApp(unittest.TestCase):
     """Test suite for the Task Management API application.
-    
+
     Tests all API endpoints including task creation, retrieval, updating, and deletion,
     as well as application health and statistics endpoints.
     """
+
     def setUp(self):
         """Set up test environment before each test.
-        
+
         Creates a test client and clears any existing tasks.
         """
         self.app = app.test_client()
@@ -27,7 +28,8 @@ class TestApp(unittest.TestCase):
         response = self.app.get("/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, {"message": "Hello, security world!"})
-    # BREAK UNIT TESTS: Uncomment to introduce a failing test
+
+    # BREAK UNIT TESTS: introduce a failing test
     # def test_will_fail(self):
     #     """Intentionally failing test for demonstrating pipeline failure."""
     #     response = self.app.get("/")

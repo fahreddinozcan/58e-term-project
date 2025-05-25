@@ -24,7 +24,7 @@ tasks = {}
 @app.route("/")
 def hello():
     """Return a greeting message for the root endpoint.
-    
+
     Returns:
         JSON response with a greeting message
     """
@@ -34,7 +34,7 @@ def hello():
 @app.route("/health")
 def health():
     """Return the health status of the application.
-    
+
     Returns:
         JSON response with health status and current timestamp
     """
@@ -44,7 +44,7 @@ def health():
 @app.route("/tasks", methods=["GET"])
 def get_tasks():
     """Retrieve all tasks.
-    
+
     Returns:
         JSON response with a list of all tasks
     """
@@ -54,9 +54,9 @@ def get_tasks():
 @app.route("/tasks", methods=["POST"])
 def create_task():
     """Create a new task.
-    
+
     Expects a JSON payload with at least a 'title' field.
-    
+
     Returns:
         JSON response with the created task data and 201 status code on success,
         or error message with 400 status code if validation fails
@@ -80,10 +80,10 @@ def create_task():
 @app.route("/tasks/<task_id>", methods=["GET"])
 def get_task(task_id):
     """Retrieve a specific task by ID.
-    
+
     Args:
         task_id: The unique identifier of the task
-        
+
     Returns:
         JSON response with task data or 404 error if task not found
     """
@@ -96,10 +96,10 @@ def get_task(task_id):
 @app.route("/tasks/<task_id>", methods=["PUT"])
 def update_task(task_id):
     """Update an existing task.
-    
+
     Args:
         task_id: The unique identifier of the task to update
-        
+
     Returns:
         JSON response with updated task data or appropriate error message
     """
@@ -125,10 +125,10 @@ def update_task(task_id):
 @app.route("/tasks/<task_id>", methods=["DELETE"])
 def delete_task(task_id):
     """Delete a task by ID.
-    
+
     Args:
         task_id: The unique identifier of the task to delete
-        
+
     Returns:
         JSON response with deletion confirmation or 404 error if task not found
     """
@@ -142,10 +142,10 @@ def delete_task(task_id):
 @app.route("/stats")
 def get_stats():
     """Get statistics about tasks.
-    
+
     Calculates and returns metrics including total tasks, completed tasks,
     and completion rate.
-    
+
     Returns:
         JSON response with task statistics
     """
@@ -161,12 +161,6 @@ def get_stats():
         }
     )
 
-
-# BREAK CONTAINER SCAN: Uncomment to introduce a vulnerable dependency in requirements.txt
-# Add this to requirements.txt: flask-unsafeeval==0.1.0
-
-# BREAK OPA GATEKEEPER: Uncomment and modify k8s/deployment.yaml to use an external image
-# Change image in deployment.yaml from your registry to: docker.io/library/python:3.9
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

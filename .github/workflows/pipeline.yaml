@@ -203,7 +203,10 @@ jobs:
           
           if [ "$REPLICA_FAILURE" == "True" ]; then
             echo "::error::Deployment failed OPA Gatekeeper validation!"
-            echo "Checking ReplicaSet for detailed error..."
+            
+            # Get the failure message directly from the deployment status
+            FAILURE_MSG=$(kubectl get deployment myapp-deployment -o jsonpath='{.status.conditions[?(@.type=="ReplicaFailure")].message}')
+            echo "Failure message from deployment: $FAILURE_MSG"
             
             # Get the latest ReplicaSet
             LATEST_RS=$(kubectl get rs -l app=myapp --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}')
@@ -217,14 +220,18 @@ jobs:
             echo "\n==== ReplicaSet Events ===="
             kubectl get events --field-selector involvedObject.name=$LATEST_RS
             
-            # Extract the specific error message
-            ERROR_MSG=$(kubectl get events --field-selector involvedObject.name=$LATEST_RS,reason=FailedCreate -o jsonpath='{.items[0].message}')
-            
-            echo "\n==== OPA Gatekeeper Validation Error ===="
-            echo "$ERROR_MSG"
+            # Check all recent events for OPA Gatekeeper validation errors
+            echo "\n==== Recent OPA Gatekeeper Events ===="
+            kubectl get events --field-selector reason=FailedCreate | grep "admission webhook\|validation.gatekeeper\|only-allow-project-registry" || echo "No specific OPA Gatekeeper events found"
             
             # Format the error for GitHub Actions
-            echo "::error::OPA Gatekeeper blocked deployment: $ERROR_MSG"
+            echo "::error::OPA Gatekeeper blocked deployment: $FAILURE_MSG"
+            
+            # Show the deployment image that was rejected
+            IMAGE=$(kubectl get deployment myapp-deployment -o jsonpath='{.spec.template.spec.containers[0].image}')
+            echo "::error::Unauthorized image detected: $IMAGE"
+            echo "Only images from europe-west1-docker.pkg.dev/cmpe-58e-term-project/myapp-repo/ are allowed"
+            
             exit 1
           else
             echo "Deployment passed OPA Gatekeeper validation!"
