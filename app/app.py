@@ -11,16 +11,19 @@ import os
 from flask import Flask, jsonify, request
 
 # BREAK LINTING: Syntax error and bad indentation
-def bad_function():
-    print("This is badly indented")
-  print("This will cause a syntax error due to inconsistent indentation")
+# def bad_function():
+#     print("This is badly indented")
+#   print("This will cause a syntax error due to inconsistent indentation")
 
-def another_bad_function()
-    print("This is missing a colon")
+# def another_bad_function()
+#     print("This is missing a colon")
 
 app = Flask(__name__)
 
 tasks = {}
+
+API_KEY = "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"
+DATABASE_PASSWORD = "super_secret_password123!"
 
 
 @app.route("/")
