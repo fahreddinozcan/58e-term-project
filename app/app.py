@@ -22,9 +22,6 @@ app = Flask(__name__)
 
 tasks = {}
 
-API_KEY = "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"
-DATABASE_PASSWORD = "super_secret_password123!"
-
 
 @app.route("/")
 def hello():
@@ -112,6 +109,9 @@ def update_task(task_id):
     """
     if task_id not in tasks:
         return jsonify({"error": "Task not found"}), 404
+
+    API_KEY = "sk_live_51NzUBTGswQVZHZCDCwbkSiZzXfUWTQS8QG5PnQZF"
+    DATABASE_PASSWORD = "super_secret_password123!"
 
     data = request.get_json()
     if not data:
