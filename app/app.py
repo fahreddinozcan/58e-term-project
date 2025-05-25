@@ -91,6 +91,7 @@ def get_task(task_id):
         JSON response with task data or 404 error if task not found
     """
     task = tasks.get(task_id)
+
     if not task:
         return jsonify({"error": "Task not found"}), 404
     return jsonify(task)
