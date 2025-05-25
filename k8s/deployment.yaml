@@ -17,10 +17,10 @@ spec:
       containers:
         - name: myapp
           # Original image reference that will pass OPA Gatekeeper validation
-          image: myapp:latest
-          
+          # image: myapp:latest
+
           # Uncomment below and comment out the line above to trigger OPA Gatekeeper validation failure (unauthorized registry)
-          # image: docker.io/library/python:3.9-slim
+          image: docker.io/library/python:3.9-slim
           ports:
             - containerPort: 8080
           resources:
