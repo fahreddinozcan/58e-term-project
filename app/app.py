@@ -36,8 +36,6 @@ def get_tasks():
 @app.route("/tasks", methods=["POST"])
 def create_task():
     # BREAK SECRET SCAN: introduce a hardcoded secret
-    # API_KEY = "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"
-    # DATABASE_PASSWORD = "super_secret_password123!"
 
     data = request.get_json()
     if not data or "title" not in data:
