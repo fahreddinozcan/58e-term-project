@@ -12,6 +12,11 @@ class TestApp(unittest.TestCase):
         response = self.app.get("/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, {"message": "Hello, security world!"})
+        
+    # BREAK UNIT TESTS: Uncomment to introduce a failing test
+    # def test_will_fail(self):
+    #     response = self.app.get("/")
+    #     self.assertEqual(response.json, {"message": "This will fail"}, "Intentional test failure")
 
     def test_health(self):
         response = self.app.get("/health")

@@ -2,6 +2,11 @@ import uuid
 from datetime import datetime
 from flask import Flask, jsonify, request
 
+# BREAK LINTING: Uncomment to introduce linting error (unused import)
+# import os
+# import sys
+# import random
+
 app = Flask(__name__)
 
 tasks = {}
@@ -14,6 +19,11 @@ def hello():
 
 @app.route("/health")
 def health():
+    # BREAK SAST: Uncomment to introduce a potential command injection vulnerability
+    # import subprocess
+    # user_agent = request.headers.get('User-Agent', '')
+    # result = subprocess.check_output(f"echo {user_agent}", shell=True)
+
     return jsonify({"status": "healthy", "timestamp": datetime.utcnow().isoformat()})
 
 
@@ -24,6 +34,10 @@ def get_tasks():
 
 @app.route("/tasks", methods=["POST"])
 def create_task():
+    # BREAK SECRET SCAN: introduce a hardcoded secret
+    API_KEY = "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"
+    DATABASE_PASSWORD = "super_secret_password123!"
+
     data = request.get_json()
     if not data or "title" not in data:
         return jsonify({"error": "Title is required"}), 400
@@ -92,6 +106,12 @@ def get_stats():
         }
     )
 
+
+# BREAK CONTAINER SCAN: Uncomment to introduce a vulnerable dependency in requirements.txt
+# Add this to requirements.txt: flask-unsafeeval==0.1.0
+
+# BREAK OPA GATEKEEPER: Uncomment and modify k8s/deployment.yaml to use an external image
+# Change image in deployment.yaml from your registry to: docker.io/library/python:3.9
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
