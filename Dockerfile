@@ -9,4 +9,4 @@ COPY app/ app/
 
 EXPOSE 8080
 
-CMD ["python", "app/main.py"]
+CMD ["python", "app/app.py"]
