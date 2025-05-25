@@ -8,7 +8,6 @@ import uuid
 from datetime import datetime
 import sqlite3
 import os
-import subprocess
 from flask import Flask, jsonify, request
 
 # BREAK LINTING: Syntax error and bad indentation
