@@ -17,10 +17,10 @@ spec:
       containers:
         - name: myapp
           # SECURE CONFIGURATION - Will pass OPA Gatekeeper validation
-          # image: europe-west1-docker.pkg.dev/cmpe-58e-term-project/myapp-repo/myapp:latest
+          image: europe-west1-docker.pkg.dev/cmpe-58e-term-project/myapp-repo/myapp:latest
 
           # FAILURE SCENARIO - Comment out the secure image above and uncomment this line to trigger OPA Gatekeeper validation failure
-          image: docker.io/library/python:3.9-slim
+          # image: docker.io/library/python:3.9-slim
           ports:
             - containerPort: 8080
           resources:

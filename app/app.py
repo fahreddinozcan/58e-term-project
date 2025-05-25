@@ -10,6 +10,10 @@ import sqlite3
 import os
 from flask import Flask, jsonify, request
 
+# BREAK SECRET SCANNING: Fake API key for testing Gitleaks detection
+# API_KEY = "sk_live_51HV2nQJxEEKUOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"
+# AWS_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+
 # BREAK LINTING: Syntax error and bad indentation
 # def bad_function():
 #     print("This is badly indented")
