@@ -13,4 +13,5 @@ spec:
       - "default"
   parameters:
     repos:
-      - "<REGISTRY_PLACEHOLDER>/"
+      # This is the allowed registry pattern
+      - "europe-west1-docker.pkg.dev/cmpe-58e-term-project/myapp-repo/"
