@@ -3,9 +3,9 @@ from datetime import datetime
 from flask import Flask, jsonify, request
 
 # BREAK LINTING: Uncomment to introduce linting error (unused import)
-# import os
-# import sys
-# import random
+import os
+import sys
+import random
 
 app = Flask(__name__)
 
@@ -19,21 +19,6 @@ def hello():
 
 @app.route("/health")
 def health():
-    # BREAK SAST: SQL Injection vulnerability
-    import sqlite3
-    
-    # Get user input directly from query parameter
-    user_id = request.args.get('user_id', '')
-    
-    # Vulnerable SQL query construction - direct string concatenation
-    query = "SELECT * FROM users WHERE id = '" + user_id + "'"
-    
-    # Execute the vulnerable query
-    conn = sqlite3.connect(':memory:')
-    cursor = conn.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS users (id TEXT, name TEXT)")
-    cursor.execute(query)  # This is vulnerable to SQL injection!
-    
     return jsonify({"status": "healthy", "timestamp": datetime.utcnow().isoformat()})
 
 
