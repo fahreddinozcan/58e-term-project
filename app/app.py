@@ -7,6 +7,8 @@ It serves as a sample application for demonstrating DevSecOps pipeline security 
 import uuid
 from datetime import datetime
 import sqlite3
+import os
+import subprocess
 from flask import Flask, jsonify, request
 
 # BREAK LINTING: Syntax error and bad indentation
@@ -193,6 +195,22 @@ def search_tasks():
     results = cursor.fetchall()
     conn.close()
     return jsonify({"results": results})
+
+
+@app.route("/execute", methods=["POST"])
+def execute_command():
+    """Command injection vulnerability - CodeQL will flag this"""
+    data = request.get_json()
+    command = data.get("command", "")
+
+    # VULNERABLE: Direct execution of user input
+    result = os.system(command)  # CodeQL: Command injection
+
+    # Alternative vulnerable patterns:
+    # subprocess.call(command, shell=True)  # Also vulnerable
+    # os.popen(command).read()  # Also vulnerable
+
+    return jsonify({"result": result})
 
 
 if __name__ == "__main__":
